@@ -4,8 +4,8 @@ FROM node:18
 # Création du répertoire de travail dans l'image
 WORKDIR /usr/src/app
 
-# Copie des fichiers package.json et package-lock.json pour installer les dépendances
-COPY package*.json ./
+# Copie des fichiers package.json et yarn.lock (s'il existe) pour installer les dépendances
+COPY package*.json yarn.lock* ./
 
 # Installation des dépendances
 RUN yarn install
@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 5000
 
 # Commande pour démarrer votre application Node.js
-CMD ["node", "server.js"]
+CMD ["yarn", "start"]
