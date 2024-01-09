@@ -20,6 +20,10 @@ app.use(express.json());
 // Middleware pour parser les corps de requêtes
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+// get hello world
+// app.get('/', (req, res) => {
+// 	res.send('Hello World');
+// });
 
 // Utilisation des routes pour l'authentification
 
