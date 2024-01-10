@@ -17,6 +17,9 @@ const productSchema = new mongoose.Schema({
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User',
 	},
+	imageUrl: {
+		type: String,
+	},
 	timestamp: {
 		type: Date,
 		default: Date.now,
