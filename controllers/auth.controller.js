@@ -46,3 +46,60 @@ module.exports.register = async (req, res) => {
 		res.status(500).json({ message: "Erreur lors de l'enregistrement de l'utilisateur" });
 	}
 };
+
+// Fonction pour la connexion
+module.exports.login = async (req, res) => {
+	try {
+		// Recuperation des erreurs de validations
+		const errors = validationResult(req);
+		// Verification si il y a des erreurs de validation
+		if (!errors.isEmpty()) {
+			// Renvoie des erreurs de validation
+			return res.status(400).json({ errors: errors.array() });
+		}
+		// Recuperation des données du formulaire
+		const { email, password } = req.body;
+
+		// Verification si l'utilisateur existe déjà dans la base de données
+		const user = await authModel.findOne({ email });
+
+		// Si l'utilisateur n'existe pas, renvoie une erreur
+		if (!user) {
+			console.log('Utilisateur non trouvé');
+			return res.status(400).json({ message: 'Email invalide' });
+		}
+		// Verification du mot de passe
+		const isPasswordValid = await bcrypt.compare(
+			// user.password = le mot de passe haché en base de données
+			// password = mot de passe entré par l'utilisateur
+			password,
+			user.password
+		);
+
+		// Si le mot de passe est incorrect, renvoie une erreur
+		if (!isPasswordValid) {
+			console.log('Mot de passe incorrect');
+			return res.status(400).json({ message: 'Mot de passe incorrect' });
+		}
+		// Renvoie d'un message de succès
+		console.log('connexion réussie !');
+
+		// Creation du token jwt
+		const payload = {
+			user: {
+				id: user._id,
+				email: user.email,
+			},
+		};
+		// Definition de la variable pour le token
+		const secretKey = process.env.JWT_SECRET;
+		// Definition de la date d'expiration du token
+		const token = jwt.sign(payload, secretKey, { expiresIn: '1h' });
+		// Renvoie un message de reussite et le token
+		res.status(200).json({ message: 'Connexion Réussie', token });
+	} catch (error) {
+		console.error('Erreur lors de la connexion : ', error.message);
+		// Renvoie une erreur si il y a un probleme lors de la connexion de l'utilisateur
+		res.status(500).json({ message: 'Erreur lors de la connexion' });
+	}
+};
