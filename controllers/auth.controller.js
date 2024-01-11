@@ -3,9 +3,11 @@ const authModel = require('../models/auth.model');
 // Import de la validation des données
 const { validationResult } = require('express-validator');
 // Import du modèle de hachage bcrypt
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 // Import du module jwt pour les tokens
 const jwt = require('jsonwebtoken');
+// Import du module validator pour la validation des emails
+const validator = require('validator');
 
 // Fonction pour l'inscription
 module.exports.register = async (req, res) => {
@@ -28,6 +30,11 @@ module.exports.register = async (req, res) => {
 			return res
 				.status(400)
 				.json({ message: 'Le mot de passe doit contenir au moins 6 caractères' });
+		}
+		// Verification de la validité email avec validator
+		if (!validator.isEmail(email)) {
+			// Renvoie une erreur si l'email n'est pas valide
+			return res.status(400).json({ message: 'Veuillez entrer un email valide' });
 		}
 		// Verification de l'email si il existe deja dans la base de données
 		const existingUser = await authModel.findOne({ email });

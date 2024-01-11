@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
+	createdBy: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'User',
+	},
 	title: {
 		type: String,
 		required: true,
@@ -12,10 +16,6 @@ const productSchema = new mongoose.Schema({
 	price: {
 		type: Number,
 		required: true,
-	},
-	createdBy: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'User',
 	},
 	imageUrl: {
 		type: String,

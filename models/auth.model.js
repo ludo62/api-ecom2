@@ -1,7 +1,7 @@
 // Import de mongoose pour la gestion avec la base de données
 const mongoose = require('mongoose');
 // Import de bcrypt pour le hashage du mot de passe
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 // Import de validator pour la validation de l'email
 const validator = require('validator');
 

@@ -1,12 +1,14 @@
+// Import du package multer
 const multer = require('multer');
 
-// Configuration de Multer pour stocker les images dans un dossier spécifique
+// Configuration de multer pour stocker les images dans un dossier spécifique
 const storage = multer.diskStorage({
 	destination: function (req, file, cb) {
-		cb(null, 'uploads/'); // Le dossier où les images seront stockées
+		// Le dossier ou les images seront stockées
+		cb(null, 'uploads/');
 	},
 	filename: function (req, file, cb) {
-		cb(null, Date.now() + '-' + file.originalname); // Nom du fichier pour éviter les doublons
+		cb(null, Date.now() + '-' + file.originalname);
 	},
 });
 
