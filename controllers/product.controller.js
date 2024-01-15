@@ -1,4 +1,5 @@
 const productModel = require('../models/product.model');
+const fs = require('fs');
 
 // Fonction pour créer un produit (accessible seulement par l'administrateur)
 module.exports.createProduct = async (req, res) => {
@@ -80,45 +81,44 @@ module.exports.updateProduct = async (req, res) => {
 			// Retour d'un message d'erreur
 			return res
 				.status(403)
-				.json({ message: 'Action non autorisée. Seul un admin peut supprimer un produit' });
+				.json({ message: 'Action non autorisée. Seul un admin peut créer un produit' });
 		}
+		// Definition de la variable pour recupérer l'id du produit en paramètre d'url
 		const productId = req.params.id;
 
+		// Déclaration de variable pour vérifier si le produit existe en base de données
 		const existingProduct = await productModel.findById(productId);
 
+		// Condition si le produit n'existe pas
 		if (!existingProduct) {
 			return res.status(404).json({ message: 'Produit non trouvé' });
 		}
-
-		// Mettez à jour les propriétés du produit avec les données du corps de la demande
+		// Mettre à jour les propriétés du produit avec les données du corps de la requête
 		existingProduct.title = req.body.title || existingProduct.title;
 		existingProduct.description = req.body.description || existingProduct.description;
 		existingProduct.price = req.body.price || existingProduct.price;
 
-		// Si une nouvelle image est téléchargée, mettez à jour le chemin de l'image
+		// Vérifier si une nouvelle image est téléchargée, mettre à jour le chemin de l'image
 		if (req.file) {
-			// Supprimez l'ancienne image s'il y en a une
+			// Supprimer l'ancienne image si il y a une
 			if (existingProduct.image) {
-				// Utilisez la bibliothèque fs pour supprimer le fichier
-				const fs = require('fs');
 				fs.unlinkSync(existingProduct.image);
 			}
-			existingProduct.image = req.file.path;
+			existingProduct.imageUrl = req.file.path;
 		}
+		// Enregistrer les modification dans la BDD
+		const updateProduct = await existingProduct.save();
 
-		// Enregistrez les modifications dans la base de données
-		const updatedProduct = await existingProduct.save();
-
+		// Réponse de succès
 		res.status(200).json({
-			message: 'Produit mis à jour avec succès',
-			product: updatedProduct,
+			message: 'Produit modifié avec succès',
+			product: updateProduct,
 		});
 	} catch (error) {
-		console.error(error);
-		res.status(500).json({ message: 'Erreur lors de la mise à jour du produit' });
+		console.error('Erreur lors de la modification du produit : ', error.message);
+		res.status(500).json({ message: 'Erreur lors de la modification du produit' });
 	}
 };
-
 // Fonction pour suppimer un produit avec son id (accessible seulement par l'administrateur)
 module.exports.deleteProduct = async (req, res) => {
 	try {

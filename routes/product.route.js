@@ -24,7 +24,6 @@ router.put(
 	upload.single('image'),
 	productController.updateProduct
 );
-
 // Route pour Supprimer un produit (accessible uniquement par l'administrateur)
 router.delete('/delete-product/:id', authMiddleware.authenticate, productController.deleteProduct);
 
