@@ -6,6 +6,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
+// Import de cloudinary
+const cloudinary = require('cloudinary').v2;
+
 // Import des routes pour l'authentification
 const authRoutes = require('./routes/auth.route');
 
@@ -24,16 +27,19 @@ app.use(express.json());
 // Middleware pour parser les corps de requêtes
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-// get hello world
-// app.get('/', (req, res) => {
-// 	res.send('Hello World');
-// });
 
 // Utilisation des routes pour l'authentification
 app.use('/api', authRoutes);
 
 // Utilisation des routes pour la création des produits
 app.use('/api', productRoutes);
+
+// Configuration de cloudinary
+cloudinary.config({
+	cloud_name: process.env.CLOUD_NAME,
+	api_key: process.env.API_KEY,
+	api_secret: process.env.API_SECRET,
+});
 
 // Configuration des options cors
 const corsOptions = {
