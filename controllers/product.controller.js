@@ -104,10 +104,12 @@ module.exports.updateProduct = async (req, res) => {
 		// Vérifier si une nouvelle image est téléchargée, mettre à jour le chemin de l'image
 		if (req.file) {
 			// Supprimer l'ancienne image si il y a une
-			if (existingProduct.image) {
-				fs.unlinkSync(existingProduct.image);
+			if (existingProduct.imagePublicId) {
+				await cloudinary.uploader.destroy(existingProduct.imagePublicId);
 			}
-			existingProduct.imageUrl = req.file.path;
+			// Redonne une nouvelle url et un nouvel id a l'image
+			existingProduct.imageUrl = req.cloudinaryUrl;
+			existingProduct.imagePublicId = req.file.public_id;
 		}
 		// Enregistrer les modification dans la BDD
 		const updateProduct = await existingProduct.save();
@@ -132,8 +134,18 @@ module.exports.deleteProduct = async (req, res) => {
 				.status(403)
 				.json({ message: 'Action non autorisée. Seul un admin peut supprimer un produit' });
 		}
-		// Récuperation de l'id du produit
+		// Récuperation de l'id du produit pour le mettre en paramètre d'url
 		const productId = req.params.id;
+
+		// Récupération de l'id du produit par rapport au model
+		const product = await productModel.findById(productId);
+
+		// Verifier si le produit existe
+		if (!product) {
+			return res.status(404).json({ message: 'Produit non trouvé' });
+		}
+		// Rechercher l'id de l'image sur cloudinary
+		const imagePublicId = product.imagePublicId;
 
 		// Suppression du produit
 		const deletedProduct = await productModel.findByIdAndDelete(productId);
@@ -141,6 +153,14 @@ module.exports.deleteProduct = async (req, res) => {
 		// Condition si le produit est introuvable
 		if (!deletedProduct) {
 			return res.status(404).json({ message: 'Produit non trouvé' });
+		}
+		console.log('Image Public ID:', imagePublicId);
+		console.log('Produit supprimé avec succès');
+
+		// Suppression de l'image dans cloudinary
+		if (imagePublicId) {
+			await cloudinary.uploader.destroy(imagePublicId);
+			console.log('Image supprimé de cloudinary avec succès');
 		}
 
 		res.status(200).json({ message: 'Produit supprimé avec succès' });
