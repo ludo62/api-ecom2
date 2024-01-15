@@ -20,6 +20,10 @@ const productSchema = new mongoose.Schema({
 	imageUrl: {
 		type: String,
 	},
+	imagePublicId: {
+		type: String,
+		default: null,
+	},
 	timestamp: {
 		type: Date,
 		default: Date.now,
