@@ -28,6 +28,17 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Configuration des options cors
+const corsOptions = {
+	origin: '*',
+	credentials: true,
+	optionsSuccessStatus: 200,
+	methods: 'GET, HEAD, PUT, PATCH, POST, DELETE',
+	preflightContinue: false,
+};
+// Middleware pour gerer les cors
+app.use(cors(corsOptions));
+
 // Utilisation des routes pour l'authentification
 app.use('/api', authRoutes);
 
@@ -40,16 +51,6 @@ cloudinary.config({
 	api_key: process.env.API_KEY,
 	api_secret: process.env.API_SECRET,
 });
-
-// Configuration des options cors
-const corsOptions = {
-	credentials: true,
-	optionsSuccessStatus: 200,
-	methods: 'GET, HEAD, PUT, PATCH, POST, DELETE',
-	preflightContinue: false,
-};
-// Middleware pour gerer les cors
-app.use(cors(corsOptions));
 
 // Définition du port de demarrage du serveur
 const PORT = process.env.PORT || 5200;
