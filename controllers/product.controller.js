@@ -86,6 +86,7 @@ module.exports.updateProduct = async (req, res) => {
 				.status(403)
 				.json({ message: 'Action non autorisée. Seul un admin peut créer un produit' });
 		}
+
 		// Definition de la variable pour recupérer l'id du produit en paramètre d'url
 		const productId = req.params.id;
 

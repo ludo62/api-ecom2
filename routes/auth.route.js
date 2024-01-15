@@ -1,14 +1,25 @@
 const router = require('express').Router();
 const authController = require('../controllers/auth.controller');
 const authMiddleware = require('../middleware/authenticate');
+const cloudinaryUpload = require('../middleware/cloudinaryUpload');
 
-// Route pour l'inscription
-router.post('/register', authController.register);
+// Route pour l'inscription admin et user
+router.post('/register', cloudinaryUpload, authController.register);
 
-// Route pour la connexion
+// Route pour la connexion admin et user
 router.post('/login', authController.login);
 
-// Route pour le mot de passe oublié
+// Route pour la modification du profil
+router.put('/update/:id', cloudinaryUpload, authController.update);
+
+// Route pour la suppression du profil
+router.delete('/delete/:id', authController.delete);
+
+// Route pour recuperer tous les utilisateurs (admin)
+router.get('/users', authMiddleware.authenticate, authController.getAllUsers);
+
+// Route pour recuperer un utilisateur (admin)
+router.get('/user/:id', authMiddleware.authenticate, authController.getUserById);
 
 // Route protegée
 router.get('/dashboard', authMiddleware.authenticate, (req, res) => {

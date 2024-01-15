@@ -12,9 +12,6 @@ const cloudinary = require('cloudinary').v2;
 // Import des routes pour l'authentification
 const authRoutes = require('./routes/auth.route');
 
-// Import des routes pour le complément d'informations
-const userRoutes = require('./routes/user.route');
-
 // Import des routes pour la création des produits
 const productRoutes = require('./routes/product.route');
 
@@ -44,9 +41,6 @@ app.use(cors(corsOptions));
 
 // Utilisation des routes pour l'authentification
 app.use('/api', authRoutes);
-
-// Utilisation des routes pour le complément d'informations
-app.use('/api', userRoutes);
 
 // Utilisation des routes pour la création des produits
 app.use('/api', productRoutes);
