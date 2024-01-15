@@ -21,7 +21,7 @@ module.exports.register = async (req, res) => {
 			return res.status(400).json({ errors: errors.array() });
 		}
 		// Recuperation des données du formulaire
-		const { lastname, firstname, email, password } = req.body;
+		const { email, password } = req.body;
 
 		// Verification de la longueur du mot de passe avec une condition
 		if (password.length < 6) {
@@ -45,7 +45,7 @@ module.exports.register = async (req, res) => {
 			});
 		}
 		// Creation d'un nouvel utilisateur
-		const user = authModel.create({ lastname, firstname, email, password });
+		const user = authModel.create({ email, password });
 		// Renvoie une reponse positive si l'utilisateur est bien enregistré
 		res.status(201).json({ message: 'Utilisateur créé avec succès', user });
 	} catch (error) {

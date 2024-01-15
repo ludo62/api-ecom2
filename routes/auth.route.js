@@ -8,6 +8,8 @@ router.post('/register', authController.register);
 // Route pour la connexion
 router.post('/login', authController.login);
 
+// Route pour le mot de passe oublié
+
 // Route protegée
 router.get('/dashboard', authMiddleware.authenticate, (req, res) => {
 	// Verifier si l'utilisateur est un admin
