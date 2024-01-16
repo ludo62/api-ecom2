@@ -6,7 +6,7 @@ const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 // Import du module jwt pour les tokens
 const jwt = require('jsonwebtoken');
-
+// Import du mudule cloudinary
 const cloudinary = require('cloudinary').v2;
 
 // Fonction pour l'inscription
@@ -18,10 +18,10 @@ module.exports.register = async (req, res) => {
 			return res.status(400).json({ errors: errors.array() });
 		}
 
-		const { lastname, firstname, email, password, birthday, address, zipcode, city, phone } =
+		const { lastname, firstname, birthday, address, zipcode, city, phone, email, password } =
 			req.body;
 
-		// Vérification si une image est téléchargée
+		// Vérifier si une image est téléchargée
 		if (!req.cloudinaryUrl || !req.file) {
 			return res.status(400).json({ message: 'Veuillez télécharger une image' });
 		}
@@ -34,8 +34,7 @@ module.exports.register = async (req, res) => {
 				message: 'Votre email existe déjà en base de données. Veuillez en choisir un autre',
 			});
 		}
-
-		// Utilisation de l'url de Cloudinary et du public_id provenant du middleware
+		// Utilisation de l'url de cloudinary et du public_id provenant du middleware
 		const avatarUrl = req.cloudinaryUrl;
 		const avatarPublicId = req.file.public_id;
 
@@ -43,20 +42,20 @@ module.exports.register = async (req, res) => {
 		const auth = await authModel.create({
 			lastname,
 			firstname,
-			email,
-			password,
 			birthday,
 			address,
 			zipcode,
 			city,
 			phone,
+			email,
+			password,
 			avatarUrl,
 			avatarPublicId,
 		});
 
 		res.status(201).json({ message: 'Utilisateur créé avec succès', auth });
 	} catch (error) {
-		console.error(error);
+		console.error("Erreur lors de l'enregistrement de l'utilisateur : ", error.message);
 		res.status(500).json({ message: "Erreur lors de l'enregistrement de l'utilisateur" });
 	}
 };
@@ -118,30 +117,60 @@ module.exports.login = async (req, res) => {
 	}
 };
 
-// Fonction pour la modification du profil utilisateur
+module.exports.dashboard = async (req, res) => {
+	try {
+		// Verifier si l'utilisateur est un admin
+		if (req.user.role === 'admin') {
+			// Definition de req.isAdmin sera egal a true pour les admins
+			req.isAdmin = true;
+			// Envoyer une réponse de succès
+			return res.status(200).json({ message: 'Bienvenue Admin' });
+		} else {
+			// Envoyer une réponse pour les utilisateurs non admin
+			return res.status(403).json({
+				message: 'Action non autorisée, seuls les admin peuvent acceder à cette page',
+			});
+		}
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ message: 'Erreur lors de la connexion' });
+	}
+};
+
+// Fonction pour la modification du profil
 module.exports.update = async (req, res) => {
 	try {
+		// Déclaration de variables pour la gestion des erreurs de validations
 		const errors = validationResult(req);
 
-		if (!errors.isEmpty()) {
+		// Verification si il y a des erreurs
+		if (!errors.isEmpty) {
 			return res.status(400).json({ errors: errors.array() });
 		}
 
+		// Recupération de l'id de l'utilisateur pour le mettre en param de requête
 		const userId = req.params.id;
-		const { lastname, firstname, email, birthday, address, zipcode, city, phone } = req.body;
+
+		// Récupération des données du formulaire
+		const { lastname, firstname, birthday, address, zipcode, city, phone, email } = req.body;
 
 		// Vérifier si l'utilisateur existe avant la mise à jour
 		const existingUser = await authModel.findById(userId);
 
+		// Condition si l'utilisateur n'existe pas en base de données
 		if (!existingUser) {
-			return res.status(404).json({ message: 'Utilisateur non trouvé.' });
+			return res.status(404).json({ message: 'Utilisateur non trouvé' });
 		}
 
-		// Supprimer l'ancienne image de Cloudinary si elle existe
+		// Vérifier si une nouvelle image est téléchargée, mettre à jour le chemin de l'image
 		if (req.file) {
+			// Supprimer l'ancienne image si il y a une
 			if (existingUser.avatarPublicId) {
 				await cloudinary.uploader.destroy(existingUser.avatarPublicId);
 			}
+			// Redonne une nouvelle url et un nouvel id a l'image
+			existingUser.avatarUrl = req.cloudinaryUrl;
+			existingUser.avatarPublicId = req.file.public_id;
 		}
 
 		// Mettre à jour les informations de l'utilisateur
@@ -161,31 +190,23 @@ module.exports.update = async (req, res) => {
 		// Sauvegarder les modifications
 		await existingUser.save();
 
-		res.status(200).json({
-			message: 'Informations utilisateur mises à jour avec succès',
-			user: existingUser,
-		});
+		// Code de reussite avec log
+		res.status(200).json({ message: 'Utilisateur mis à jour avec succès', user: existingUser });
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({
-			message: 'Erreur lors de la mise à jour des informations utilisateur.',
-		});
+		res.status(500).json({ message: 'Erreur lors de la mis à jour du profil utilisateur' });
 	}
 };
 
-// Fonction pour la suppression du profil utilisateur
 module.exports.delete = async (req, res) => {
 	try {
+		// Déclaration de la variable qui va rechercher l'id utilisateur pour le mettre en params url
 		const userId = req.params.id;
 
-		// Vérifier si l'utilisateur existe avant la suppression
+		// Déclaration de variable qui va vérifier si l'utilisateur existe
 		const existingUser = await authModel.findById(userId);
 
-		if (!existingUser) {
-			return res.status(404).json({ message: 'Utilisateur non trouvé.' });
-		}
-
-		// Supprimer l'avatar de Cloudinary si celui-ci existe
+		// Suppresion de l'avatar de cloudinary si celui ci existe
 		if (existingUser.avatarPublicId) {
 			await cloudinary.uploader.destroy(existingUser.avatarPublicId);
 		}
@@ -193,60 +214,56 @@ module.exports.delete = async (req, res) => {
 		// Supprimer l'utilisateur de la base de données
 		await authModel.findByIdAndDelete(userId);
 
+		// Message de réussite
 		res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({ message: "Erreur lors de la suppression de l'utilisateur." });
+		res.status(500).json({ message: "Erreur lors de la suppression de l'utilisateur" });
 	}
 };
 
-// Fonction pour récupérer tous les utilisateurs (accessible seulement par l'administrateur)
 module.exports.getAllUsers = async (req, res) => {
 	try {
-		// Vérifier s'il s'agit d'un utilisateur admin
+		// Verifier si l'utilisateur est admin
 		if (req.user.role !== 'admin') {
-			return res.status(403).json({
-				message: 'Accès non autorisé. Seuls les admins peuvent effectuer cette action.',
-			});
+			// Retour d'un message d'erreur
+			return res
+				.status(403)
+				.json({ message: 'Action non autorisée. Seul un admin peut créer un produit' });
 		}
-
-		// Récupérer tous les utilisateurs depuis la base de données
 		const users = await authModel.find();
 
-		// Retourner la liste des utilisateurs
-		res.status(200).json({ users });
+		res.status(200).json({ message: 'Liste des utilisateurs', users });
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({ message: 'Erreur lors de la récupération des utilisateurs.' });
+		res.status(500).json({ message: 'Erreur lors de la recupération des utilisateurs' });
 	}
 };
 
-// Fonction pour récupérer un utilisateur par son id (accessible seulement par l'administrateur)
 module.exports.getUserById = async (req, res) => {
 	try {
-		// Vérifier s'il s'agit d'un utilisateur admin
+		// Verifier si l'utilisateur est admin
 		if (req.user.role !== 'admin') {
+			// Retour d'un message d'erreur
 			return res
 				.status(403)
-				.json({
-					message: 'Accès non autorisé. Seuls les admins peuvent effectuer cette action.',
-				});
+				.json({ message: 'Action non autorisée. Seul un admin peut créer un produit' });
 		}
 
-		// Récupérer l'ID de l'utilisateur depuis les paramètres de la route
+		// Récuperer l'id de l'utilisateur
 		const userId = req.params.id;
 
-		// Vérifier si l'utilisateur existe dans la base de données
+		// Vérifier si l'utilisateur existe en base de données
 		const user = await authModel.findById(userId);
 
+		// Condition si l'utilisateur n'est pas en bdd
 		if (!user) {
-			return res.status(404).json({ message: 'Utilisateur non trouvé.' });
+			return res.status(404).json({ message: 'Utilisateur non trouvé' });
 		}
-
-		// Retourner les informations de l'utilisateur
+		// Message de réussite
 		res.status(200).json({ user });
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({ message: "Erreur lors de la récupération de l'utilisateur." });
+		res.status(500).json({ message: "Erreur lors de la recupération de l'utilisateur" });
 	}
 };

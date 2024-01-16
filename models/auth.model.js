@@ -9,25 +9,11 @@ const validator = require('validator');
 const authSchema = new mongoose.Schema({
 	lastname: {
 		type: String,
-		required: [true, 'Veuillez renseigner votre nom'],
+		required: [true, 'Veuillez renseigner votre nom de famille'],
 	},
 	firstname: {
 		type: String,
 		required: [true, 'Veuillez renseigner votre prénom'],
-	},
-	email: {
-		type: String,
-		required: true,
-		unique: true,
-		lowercase: true,
-		validate: {
-			validator: (value) => validator.isEmail(value),
-			message: 'Adresse email invalide',
-		},
-	},
-	password: {
-		type: String,
-		required: [true, 'Veuillez renseigner votre mot de passe'],
 	},
 	birthday: {
 		type: String,
@@ -55,6 +41,20 @@ const authSchema = new mongoose.Schema({
 	avatarPublicId: {
 		type: String,
 		default: null,
+	},
+	email: {
+		type: String,
+		required: true,
+		unique: true,
+		lowercase: true,
+		validate: {
+			validator: (value) => validator.isEmail(value),
+			message: 'Adresse email invalide',
+		},
+	},
+	password: {
+		type: String,
+		required: [true, 'Veuillez renseigner votre mot de passe'],
 	},
 	role: {
 		type: String,
