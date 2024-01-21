@@ -39,6 +39,12 @@ module.exports.createProduct = async (req, res) => {
 		res.status(200).json({ message: 'Produit ajouté avec succès', product: newProduct });
 	} catch (error) {
 		console.error('Erreur lors de la création du produit :', error.message);
+
+		// suprimer l'image téléchargée si elle existe
+		if (req.file && req.file.public_id) {
+			await cloudinary.uploader.destroy(req.file.public_id);
+		}
+
 		res.status(500).json({ message: 'Erreur lors de la création du produit' });
 	}
 };

@@ -61,6 +61,23 @@ const authSchema = new mongoose.Schema({
 		enum: ['user', 'admin'],
 		default: 'user',
 	},
+	isEmailVerified: {
+		type: Boolean,
+		default: false,
+	},
+	emailVerificationToken: {
+		type: String,
+	},
+	emailVerificationTokenExpires: {
+		type: Date,
+	},
+	resetPasswordToken: {
+		type: String,
+		default: null,
+	},
+	resetPasswordTokenExpires: {
+		type: Date,
+	},
 	timestamp: {
 		type: Date,
 		default: Date.now,
@@ -87,6 +104,11 @@ authSchema.methods.comparePassword = async function (paramPassword) {
 	} catch (error) {
 		throw new Error(error);
 	}
+};
+
+// Définir la méthode findOneAndUpdate
+authSchema.statics.findOneAndUpdate = async function (conditions, update, options) {
+	return await this.findOneAndUpdate(conditions, update, options).exec();
 };
 
 // Export du modèle, du schema et mis dans la variable User

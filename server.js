@@ -40,10 +40,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Utilisation des routes pour l'authentification
-app.use('/api', authRoutes);
+app.use('/', authRoutes);
 
 // Utilisation des routes pour la création des produits
-app.use('/api', productRoutes);
+app.use('/', productRoutes);
 
 // Configuration de cloudinary
 cloudinary.config({
@@ -58,13 +58,13 @@ const PORT = process.env.PORT || 5200;
 // Fonction pour demarrer le serveur
 const start = async () => {
 	try {
-		// Connexion a la base de données
 		await connectDB();
-		// Demarrage du serveur sur le port specifié
-		app.listen(PORT, () => console.log(`Le serveur à démarrer sur le port ${PORT}`));
+		app.listen(PORT, () => console.log(`Le serveur à démarré sur le port ${PORT}`));
 	} catch (error) {
 		console.log(error);
 	}
 };
-// Appel de la fonction pour demarrer le serveur
+
 start();
+
+module.exports = app;
