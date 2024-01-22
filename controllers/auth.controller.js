@@ -21,12 +21,14 @@ const transporter = nodemailer.createTransport({
 		pass: process.env.MAILTRAP_PASS,
 	},
 });
-
+// Déclaration de variable pour générer un token email avec crypto
+const generateVerificationToken = () => {
+	return crypto.randomBytes(32).toString('hex');
+};
 // Déclaration de variable pour générer un token password avec crypto
 const generateVerificationTokenPassword = () => {
 	return crypto.randomBytes(32).toString('hex');
 };
-
 // fonction de vérification pour la réinitialisation du mot de passe
 const sendResetPassword = async (to, resetPasswordToken) => {
 	// Variable qui va contenir le lien de vérification
@@ -91,6 +93,13 @@ module.exports.register = async (req, res) => {
 			avatarUrl,
 			avatarPublicId,
 		});
+
+		// Génaration de la vérification de token sécurisé
+		const verificationToken = generateVerificationToken();
+
+		// Sauvegarder le token générer dans la bdd et l'associé à l'utilisateur
+		auth.emailVerificationToken = verificationToken;
+		auth.emailVerificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
 		// Sauvegarder
 		await auth.save();
