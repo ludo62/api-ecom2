@@ -29,21 +29,6 @@ const generateVerificationToken = () => {
 const generateVerificationTokenPassword = () => {
 	return crypto.randomBytes(32).toString('hex');
 };
-// fonction de vérification pour la réinitialisation du mot de passe
-const sendResetPassword = async (to, resetPasswordToken) => {
-	// Variable qui va contenir le lien de vérification
-	const resetPasswordLink = `http://localhost:5000/forgot-password?token=${resetPasswordToken}`;
-
-	const mailOptions = {
-		from: 'forgot-password@gmail.com',
-		to,
-		subject: 'Réinitialisation du mot de passe',
-		text: `Réinitialisation de votre mot de passe en cliquant sur ce <a href=${resetPasswordLink}>Lien</a>`,
-		html: `<p>Merci de cliquer sur le lien pour Réinitialiser votre mot de passe</p>`,
-	};
-
-	await transporter.sendMail(mailOptions);
-};
 // Fonction pour l'inscription
 module.exports.register = async (req, res) => {
 	try {
@@ -176,9 +161,6 @@ module.exports.forgotPassword = async (req, res) => {
 		user.resetPasswordToken = resetPasswordToken;
 		user.resetPasswordTokenExpires = new Date(Date.now() + 60 * 60 * 1000);
 		await user.save();
-
-		// Envoyer un e-mail avec le lien de réinitialisation de mot de passe
-		await sendResetPassword(user.email, resetPasswordToken);
 
 		// Message de réussite
 		res.status(200).json({

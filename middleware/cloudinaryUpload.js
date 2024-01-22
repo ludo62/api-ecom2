@@ -21,9 +21,10 @@ const cloudinaryUpload = async (req, res, next) => {
 					.json({ message: 'Erreur lors du téléversement avec Multer' });
 			}
 
-			// Vérification de l'existence du fichier dans la requête
+			// Si aucun fichier n'est présent dans la requête, poursuivre sans erreur
 			if (!req.file) {
-				return res.status(400).json({ message: 'Veuillez télécharger une image' });
+				console.log('Aucun fichier à téléverser, poursuite du middleware.');
+				return next();
 			}
 
 			try {
