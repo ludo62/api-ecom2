@@ -21,29 +21,12 @@ const transporter = nodemailer.createTransport({
 		pass: process.env.MAILTRAP_PASS,
 	},
 });
-// Déclaration de variable pour générer un token email avec crypto
-const generateVerificationToken = () => {
-	return crypto.randomBytes(32).toString('hex');
-};
+
 // Déclaration de variable pour générer un token password avec crypto
 const generateVerificationTokenPassword = () => {
 	return crypto.randomBytes(32).toString('hex');
 };
-// fonction de vérification de l'envoi email
-const sendVerificationEmail = async (to, verificationToken) => {
-	// Variable qui va contenir le lien de vérification
-	const verificationLink = `http://localhost:5000/verify?token=${verificationToken}`;
 
-	const mailOptions = {
-		from: 'verificationemail@gmail.com',
-		to,
-		subject: 'Veuillez vérifier votre adresse email',
-		text: `Merci de vérifier votre email en cliquant sur ce <a href=${verificationLink}>Lien</a>`,
-		html: `<p>Merci de cliquer sur le lien pour verifier votre adresse mail et pouvoir vous connecter</p>`,
-	};
-
-	await transporter.sendMail(mailOptions);
-};
 // fonction de vérification pour la réinitialisation du mot de passe
 const sendResetPassword = async (to, resetPasswordToken) => {
 	// Variable qui va contenir le lien de vérification
@@ -109,18 +92,8 @@ module.exports.register = async (req, res) => {
 			avatarPublicId,
 		});
 
-		// Génaration de la vérification de token sécurisé
-		const verificationToken = generateVerificationToken();
-
-		// Sauvegarder le token générer dans la bdd et l'associé à l'utilisateur
-		auth.emailVerificationToken = verificationToken;
-		auth.emailVerificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
 		// Sauvegarder
 		await auth.save();
-
-		// Envoyer la vérification d'email
-		await sendVerificationEmail(auth.email, verificationToken);
 
 		res.status(201).json({
 			message: 'Utilisateur créé avec succès. Vérifiez votre email pour activer votre compte',
