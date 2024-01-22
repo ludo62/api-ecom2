@@ -8,7 +8,7 @@ router.post(
 	'/api/create-product',
 	authMiddleware.authenticate,
 	cloudinaryUpload,
-	productController.createProduct,
+	productController.createProduct
 );
 
 // Route pour recupérer tous les produits
@@ -22,13 +22,13 @@ router.put(
 	'/api/update-product/:id',
 	authMiddleware.authenticate,
 	cloudinaryUpload,
-	productController.updateProduct,
+	productController.updateProduct
 );
 // Route pour Supprimer un produit (accessible uniquement par l'administrateur)
 router.delete(
 	'/api/delete-product/:id',
 	authMiddleware.authenticate,
-	productController.deleteProduct,
+	productController.deleteProduct
 );
 
 module.exports = router;

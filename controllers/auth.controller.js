@@ -206,7 +206,7 @@ module.exports.forgotPassword = async (req, res) => {
 	} catch (error) {
 		console.error(
 			'Erreur lors de la demande de réinitialisation de mot de passe',
-			error.message,
+			error.message
 		);
 		res.status(500).json({
 			message: 'Erreur lors de la demande de réinitialisation de mot de passe',
@@ -280,7 +280,7 @@ module.exports.login = async (req, res) => {
 			// user.password = le mot de passe haché en base de données
 			// password = mot de passe entré par l'utilisateur
 			password,
-			user.password,
+			user.password
 		);
 
 		// Si le mot de passe est incorrect, renvoie une erreur

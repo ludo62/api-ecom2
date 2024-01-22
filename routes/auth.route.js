@@ -29,7 +29,7 @@ router.put(
 	'/api/update-user/:id',
 	authMiddleware.authenticate,
 	cloudinaryUpload,
-	authController.updateUser,
+	authController.updateUser
 );
 
 // Route pour supprimer un utilisateur (admin)
