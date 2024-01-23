@@ -1,49 +1,51 @@
-// Importations nécessaires
+// Import de mongoose
 const mongoose = require('mongoose');
+// Import de supertest
 const request = require('supertest');
+// Import de l'application
 const app = require('../server');
+const { login } = require('../controllers/auth.controller');
 
+// Bloc de test pour verifier la route /api/profile/:id
 describe('Get Profile API', () => {
-	// Avant tous les tests
+	// Connexion à la base de données avant execution des test
 	beforeAll(async () => {
-		// Connexion à la base de données et autres initialisations
+		// Utilisation de la méthode connect
 		await mongoose.connect(process.env.MONGO_URI);
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+		// Attente d'une seconde pour assurer la connexion à la bdd
+		await new Promise((resolve) => setTimeout(resolve), 1000);
 	});
-
-	// Après tous les tests
+	// Deconnection bdd après execution des tests
 	afterAll(async () => {
-		// Fermeture de la connexion à la base de données
+		// Utilisation de la méthode close
 		await mongoose.connection.close();
 	});
-
-	// Test vérifiant que la route /api/profile/:id renvoie le profil de l'utilisateur connecté
-	it('Should return the profile of the authenticated user', async () => {
-		// Effectuer la connexion et récupérer le token
+	// Test vérifiant que la route /api/profile/:id renvoie le profil de l'utilisateur connecté (connexion)
+	it('Should return profile of the authenticated user', async () => {
+		// Effceuter la connexion et récupérer le token
 		const loginResponse = await request(app).post('/api/login').send({
 			email: 'exemple@gmail.com',
 			password: '123456789',
 		});
-
 		// Vérifier que la connexion est réussie
 		expect(loginResponse.status).toBe(200);
 		expect(loginResponse.body).toHaveProperty('token');
 
-		// Récupérer le token pour le test suivant
+		// Récuperer le token pour le test suivant
 		const authToken = loginResponse.body.token;
 
-		// Remplacez 'user-id' par l'ID réel de l'utilisateur dans la base de données
-		const userId = '65aea245b30543eaf4b02c58';
+		// Déclaration variable utilisateur avec son id
+		const userId = '65af7daed7a709bd211607c8';
 
 		// Test pour vérifier que la route /api/profile/:id renvoie le profil de l'utilisateur connecté
-		const responseProfile = await request(app)
+		const responseProfil = await request(app)
 			.get(`/api/profile/${userId}`)
 			.set('Authorization', `Bearer ${authToken}`);
 
 		// Vérifier que la réponse est réussie
-		expect(responseProfile.status).toBe(200);
+		expect(responseProfil.status).toBe(200);
 
 		// Afficher l'utilisateur dans la console
-		console.log('Utilisateur récupéré :', responseProfile.body.user);
+		console.log('Utilisateur récupére:', responseProfil.body.user);
 	});
 });

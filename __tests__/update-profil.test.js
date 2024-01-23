@@ -1,65 +1,70 @@
+// Import de mongoose
 const mongoose = require('mongoose');
+// Import de supertest
 const request = require('supertest');
-const app = require('../server'); // Assurez-vous que c'est le bon chemin vers votre fichier d'application
+// Import de l'application
+const app = require('../server');
+// Import du JWT
 const jwt = require('jsonwebtoken');
+// Import du model
 const authModel = require('../models/auth.model');
 
-// Mock de la méthode destroy de Cloudinary pour éviter de réellement supprimer des fichiers lors des tests
+// Mock de la méthode destroy de cloudinary pour éviter de supprimer réélement les fichier lors des tests
 jest.mock('cloudinary');
 
-// Connexion à la base de données avant l'exécution des tests
+// Connexion à la base de données avant l'execution des tests
 beforeAll(async () => {
+	// Utilisation de la méthode connect
 	await mongoose.connect(process.env.MONGO_URI);
-	await new Promise((resolve) => setTimeout(resolve, 1000));
+	// Atente d'une seconde pour assurer la connexion avec la bdd
+	await new Promise((resolve) => setTimeout(resolve), 1000);
 });
-
-// Fermeture de la connexion après l'exécution des tests
+// Fermeture de la connexion après execution des tests
 afterAll(async () => {
+	// Utilisation de la méthode close
 	await mongoose.connection.close();
 });
 
-// Fonction utilitaire pour générer un jeton d'authentification
+// fonction utilitaire pour générer un token d'authentification
 function generateAuthToken(user) {
 	const secretKey = process.env.JWT_SECRET;
 	const expiresIn = '1h';
 
-	// Utilisation de la bibliothèque jsonwebtoken pour générer le jeton
+	// Utilisation de jwt pour générer le token
 	return jwt.sign({ userId: user._id }, secretKey, { expiresIn });
 }
 
-// Bloc de tests pour la route de mise à jour du profil
-describe('Update Profile API', () => {
+// Bloc de test pour la route de mis à jour du profil
+describe('Uppdate Profile API', () => {
 	it('Should update the user profile', async () => {
-		// Assumez que vous avez un utilisateur existant en base de données avec l'ID spécifié
-		const existingUserId = '65aea245b30543eaf4b02c58';
+		// Entrer l'utilisateur existant en base de données (id)
+		const existingUserId = '65af7daed7a709bd211607c8';
 		const existingUser = await authModel.findById(existingUserId);
 
 		expect(existingUser).toBeDefined();
 
-		// Générez un jeton d'authentification pour l'utilisateur
+		// Générer un token
 		const authToken = generateAuthToken(existingUser);
 
-		// Utilisez Supertest pour envoyer une requête PUT pour mettre à jour le profil
+		// Utiliser supertest pour envoyer une requête PUT
 		const response = await request(app)
 			.put(`/api/update/${existingUserId}`)
 			.set('Authorization', `Bearer ${authToken}`)
 			.send({
-				lastname: 'NewLastName',
-				firstname: 'NewFirstName',
+				lastname: 'NouveauNom',
+				firstname: 'NouveauPrenom',
 				birthday: '1995-01-01',
-				address: 'New Address',
-				zipcode: '12345',
-				city: 'New City',
-				phone: '1234567890',
-				email: 'newemail@example.com',
+				address: 'Nouvelle adresse',
+				zipcode: '62587',
+				city: 'Loly ville',
+				phone: '0608070905',
+				email: 'fournier@gmail.com',
 			});
-
-		// Affichez le corps de la réponse en cas d'échec
+		// Afficher le corps de la réponse en cas d'echec
 		if (response.status !== 200) {
 			console.error(response.body);
 		}
-
-		// Assurez-vous que la réponse est réussie (200)
+		// S'assurer que la réponse est 200
 		expect(response.status).toBe(200);
 		expect(response.body).toHaveProperty('message', 'Utilisateur mis à jour avec succès');
 		expect(response.body).toHaveProperty('user');
