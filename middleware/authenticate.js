@@ -3,29 +3,28 @@ const authModel = require('../models/auth.model');
 // Import du JWT
 const jwt = require('jsonwebtoken');
 
-// Fonction pour la gestion de rôle
+// Middleware pour l'authentification des administrateurs
 module.exports.authenticate = async (req, res, next) => {
 	try {
-		// Definition de la variable pour l'autorisation
+		// Récupérer le token d'authentification de l'en-tête
 		const authHeader = req.header('Authorization');
 
-		// condition qui vérifie la variable et qui ajoute un Bearer comme exception
 		if (!authHeader || !authHeader.startsWith('Bearer ')) {
 			return res.status(401).json({
 				message:
 					"Vous devez être connecté en tant qu'administrateur pour accéder à cette page",
 			});
 		}
-		// Extraction du token sans le prefixe 'Bearer'
+
+		// Extraire le token sans le préfixe 'Bearer'
 		const token = authHeader.split(' ')[1];
 
-		// Ajout de la variable pour decoder le token
+		// Vérifier la validité du token
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-		// Declaration d'une variable qui va recuperer l'id de l'utilisateur et lui assigner un token
-		const user = await authModel.findById(decoded.user.id);
+		// Vérifier si l'utilisateur existe dans la base de données
+		const user = await authModel.findById(decoded.userId);
 
-		// Si il n'y a pas d'utilisateur renvoie un message
 		if (!user) {
 			return res.status(400).json({ message: 'Utilisateur non trouvé' });
 		}
