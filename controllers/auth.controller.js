@@ -283,9 +283,18 @@ module.exports.login = async (req, res) => {
 			return res.status(400).json({ message: 'Email invalide' });
 		}
 
-		// Vérification si le compte est vérouillé
+		if (user.lockUntil && user.lockUntil < Date.now()) {
+			user.failedLoginAttempts = 0;
+			user.lockUntil = null;
+			await user.save();
+		}
+
+		// Vérification si le compte est vérouillé et ajouter 5 minutes de verrouillage
 		if (user.failedLoginAttempts >= 3) {
 			console.log('Compte verouillé');
+			// Ajouter 5 minutes de verrouillage
+			user.lockUntil = Date.now() + 1 * 60 * 1000;
+			await user.save();
 			return res.status(400).json({ message: 'Compte verrouillé, Réessayer plus tard' });
 		}
 
@@ -305,10 +314,6 @@ module.exports.login = async (req, res) => {
 			await user.save();
 			return res.status(400).json({ message: 'Mot de passe incorrect' });
 		}
-
-		// Réinitialisation du nombre de tentatives en cas de connexion réussie
-		user.failedLoginAttempts = 0;
-		await user.save();
 
 		// Renvoie d'un message de succès
 		console.log('connexion réussie !');

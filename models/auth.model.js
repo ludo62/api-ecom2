@@ -82,6 +82,10 @@ const authSchema = new mongoose.Schema({
 		type: Number,
 		default: 0,
 	},
+	lockUntil: {
+		type: Date,
+		default: null,
+	},
 	timestamp: {
 		type: Date,
 		default: Date.now,

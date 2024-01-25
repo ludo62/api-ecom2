@@ -22,10 +22,10 @@ describe('Get Profile API', () => {
 	});
 	// Test vérifiant que la route /api/profile/:id renvoie le profil de l'utilisateur connecté (connexion)
 	it('Should return profile of the authenticated user', async () => {
-		// Effceuter la connexion et récupérer le token
+		// Effectuer la connexion et récupérer le token
 		const loginResponse = await request(app).post('/api/login').send({
-			email: 'exemple@gmail.com',
-			password: '123456789',
+			email: 'exemple2@gmail.com',
+			password: '123456',
 		});
 		// Vérifier que la connexion est réussie
 		expect(loginResponse.status).toBe(200);
@@ -35,7 +35,7 @@ describe('Get Profile API', () => {
 		const authToken = loginResponse.body.token;
 
 		// Déclaration variable utilisateur avec son id
-		const userId = '65af7daed7a709bd211607c8';
+		const userId = '65b157fa801578d3b09ec98f';
 
 		// Test pour vérifier que la route /api/profile/:id renvoie le profil de l'utilisateur connecté
 		const responseProfil = await request(app)
