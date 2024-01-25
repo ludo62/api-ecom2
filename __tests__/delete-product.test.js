@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const request = require('supertest');
 const app = require('../server');
 const jwt = require('jsonwebtoken');
+const productModel = require('../models/product.model');
 
 // Fonction utilitaire pour générer un jeton d'authentification
 function generateAuthToken(userId) {
@@ -23,21 +24,21 @@ afterAll(async () => {
 	await mongoose.connection.close();
 });
 
-// Votre test pour récupérer un utilisateur par ID
-describe('Get User By ID API', () => {
-	it('Should get a specific user by ID if admin is authenticated', async () => {
+// Votre test pour supprimer un produit par ID
+describe('Delete Product API', () => {
+	it('Should allow deleting product for admin', async () => {
 		// ID de l'utilisateur admin dans la base de données
 		const adminUserId = '65afa2a85bd581f923d141b8';
 
-		// ID de l'utilisateur à récupérer
-		const userIdToGet = '65b0ca9d52386c0ccd3126c3';
+		// ID du produit à supprimer
+		const productIdToDelete = '65b0f2db18e199dea0e30286';
 
 		// Générer un jeton d'authentification pour l'admin
 		const authToken = generateAuthToken(adminUserId);
 
-		// Faire la demande pour récupérer un utilisateur par ID
+		// Faire la demande pour supprimer un produit par ID
 		const response = await request(app)
-			.get(`/api/user/${userIdToGet}`)
+			.delete(`/api/delete-product/${productIdToDelete}`)
 			.set('Authorization', `Bearer ${authToken}`);
 
 		// Log de la réponse
@@ -45,6 +46,10 @@ describe('Get User By ID API', () => {
 
 		// Assurez-vous que la demande est réussie (200)
 		expect(response.status).toBe(200);
-		expect(response.body).toHaveProperty('user');
+		expect(response.body).toHaveProperty('message', 'Produit supprimé avec succès');
+
+		// S'assurer que les informations du produit ont bien été supprimées de la base de données
+		const deletedProduct = await productModel.findById(productIdToDelete);
+		expect(deletedProduct).toBeNull();
 	});
 });

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const request = require('supertest');
 const app = require('../server');
 const jwt = require('jsonwebtoken');
+const authModel = require('../models/auth.model');
 
 // Fonction utilitaire pour générer un jeton d'authentification
 function generateAuthToken(userId) {
@@ -9,7 +10,7 @@ function generateAuthToken(userId) {
 	const expiresIn = '1h';
 
 	// Utilisation de la bibliothèque jsonwebtoken pour générer le jeton
-	return jwt.sign({ user: { id: userId } }, secretKey, { expiresIn });
+	return jwt.sign({ userId }, secretKey, { expiresIn });
 }
 
 // Connexion à la base de données avant l'exécution des tests
@@ -24,20 +25,17 @@ afterAll(async () => {
 });
 
 // Votre test pour récupérer un utilisateur par ID
-describe('Get User By ID API', () => {
-	it('Should get a specific user by ID if admin is authenticated', async () => {
-		// ID de l'utilisateur admin dans la base de données
-		const adminUserId = '65afa2a85bd581f923d141b8';
-
-		// ID de l'utilisateur à récupérer
-		const userIdToGet = '65b0ca9d52386c0ccd3126c3';
+describe('Delete Profile API', () => {
+	it('Should allow deleting user profile for admin', async () => {
+		// ID du profil utilisateur a supprimé
+		const userIdToDelete = '65b0da9568b27d19b644b4be';
 
 		// Générer un jeton d'authentification pour l'admin
-		const authToken = generateAuthToken(adminUserId);
+		const authToken = generateAuthToken(userIdToDelete);
 
-		// Faire la demande pour récupérer un utilisateur par ID
+		// Faire la demande pour supprimer un utilisateur par ID
 		const response = await request(app)
-			.get(`/api/user/${userIdToGet}`)
+			.delete(`/api/delete/${userIdToDelete}`)
 			.set('Authorization', `Bearer ${authToken}`);
 
 		// Log de la réponse
@@ -45,6 +43,10 @@ describe('Get User By ID API', () => {
 
 		// Assurez-vous que la demande est réussie (200)
 		expect(response.status).toBe(200);
-		expect(response.body).toHaveProperty('user');
+		expect(response.body).toHaveProperty('message', 'Profil supprimé avec succès');
+
+		// S'assurer que le profil utilisateur à bien été supprimées de la base de données
+		const deletedUser = await authModel.findById(userIdToDelete);
+		expect(deletedUser).toBeNull();
 	});
 });

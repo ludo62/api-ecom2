@@ -35,7 +35,7 @@ function generateAuthToken(user) {
 }
 
 // Bloc de test pour la route de mis à jour du profil
-describe('Uppdate Profile API', () => {
+describe('Update Profile API', () => {
 	it('Should update the user profile', async () => {
 		// Entrer l'utilisateur existant en base de données (id)
 		const existingUserId = '65af7daed7a709bd211607c8';

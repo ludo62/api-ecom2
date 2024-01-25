@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const request = require('supertest');
 const app = require('../server');
 const jwt = require('jsonwebtoken');
-const authModel = require('../models/auth.model');
 
 // Fonction utilitaire pour générer un jeton d'authentification
 function generateAuthToken(userId) {
@@ -12,7 +11,7 @@ function generateAuthToken(userId) {
 	const expiresIn = '1h';
 
 	// Utilisation de la bibliothèque jsonwebtoken pour générer le jeton
-	return jwt.sign({ userId }, secretKey, { expiresIn });
+	return jwt.sign({ user: { id: userId } }, secretKey, { expiresIn });
 }
 
 // Connexion à la base de données avant l'exécution des tests

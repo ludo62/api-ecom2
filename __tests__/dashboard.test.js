@@ -1,10 +1,7 @@
-// __tests__/dashboard.test.js
-
 const mongoose = require('mongoose');
 const request = require('supertest');
 const app = require('../server');
 const jwt = require('jsonwebtoken');
-const authModel = require('../models/auth.model');
 
 // Fonction utilitaire pour générer un jeton d'authentification
 function generateAuthToken(userId, role) {
@@ -12,7 +9,7 @@ function generateAuthToken(userId, role) {
 	const expiresIn = '1h';
 
 	// Utilisation de la bibliothèque jsonwebtoken pour générer le jeton
-	return jwt.sign({ userId, role }, secretKey, { expiresIn });
+	return jwt.sign({ user: { id: userId }, role }, secretKey, { expiresIn });
 }
 
 // Connexion à la base de données avant l'exécution des tests
@@ -65,7 +62,7 @@ describe('Dashboard API', () => {
 		expect(response.status).toBe(403);
 		expect(response.body).toHaveProperty(
 			'message',
-			'Action non autorisée, seuls les admin peuvent acceder à cette page'
+			'Action non autorisée, seuls les admin peuvent accéder à cette page',
 		);
 	});
 });

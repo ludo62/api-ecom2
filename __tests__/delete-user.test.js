@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const request = require('supertest');
 const app = require('../server');
 const jwt = require('jsonwebtoken');
+const authModel = require('../models/auth.model');
 
 // Fonction utilitaire pour générer un jeton d'authentification
 function generateAuthToken(userId) {
@@ -24,20 +25,20 @@ afterAll(async () => {
 });
 
 // Votre test pour récupérer un utilisateur par ID
-describe('Get User By ID API', () => {
-	it('Should get a specific user by ID if admin is authenticated', async () => {
+describe('Delete User API', () => {
+	it('Should allow deleting user profile for admin', async () => {
 		// ID de l'utilisateur admin dans la base de données
 		const adminUserId = '65afa2a85bd581f923d141b8';
 
-		// ID de l'utilisateur à récupérer
-		const userIdToGet = '65b0ca9d52386c0ccd3126c3';
+		// ID de l'utilisateur à supprimer
+		const userIdToDelete = '65b0ca9d52386c0ccd3126c3';
 
 		// Générer un jeton d'authentification pour l'admin
 		const authToken = generateAuthToken(adminUserId);
 
-		// Faire la demande pour récupérer un utilisateur par ID
+		// Faire la demande pour supprimer un utilisateur par ID
 		const response = await request(app)
-			.get(`/api/user/${userIdToGet}`)
+			.delete(`/api/delete-user/${userIdToDelete}`)
 			.set('Authorization', `Bearer ${authToken}`);
 
 		// Log de la réponse
@@ -45,6 +46,10 @@ describe('Get User By ID API', () => {
 
 		// Assurez-vous que la demande est réussie (200)
 		expect(response.status).toBe(200);
-		expect(response.body).toHaveProperty('user');
+		expect(response.body).toHaveProperty('message', 'Utilisateur supprimé avec succès');
+
+		// S'assurer que les informations de l'utilisateur ont bien été supprimées de la base de données
+		const deletedUser = await authModel.findById(userIdToDelete);
+		expect(deletedUser).toBeNull();
 	});
 });

@@ -19,14 +19,18 @@ module.exports.authenticate = async (req, res, next) => {
 		// Extraire le token sans le préfixe 'Bearer'
 		const token = authHeader.split(' ')[1];
 
+		console.log('Decoded token:', jwt.decode(token));
+
 		// Vérifier la validité du token
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
 		// Vérifier si l'utilisateur existe dans la base de données
-		const user = await authModel.findById(decoded.userId);
+		const user = await authModel.findById(decoded.user.id);
 
 		if (!user) {
-			return res.status(400).json({ message: 'Utilisateur non trouvé' });
+			return res.status(403).json({
+				message: 'Action non autorisée, seuls les admin peuvent accéder à cette page',
+			});
 		}
 
 		// Assigner l'utilisateur à la propriété user de la requête

@@ -36,10 +36,10 @@ describe('Register route testing', () => {
 			.field('zipcode', '62152')
 			.field('city', 'Boul')
 			.field('phone', '0607080910')
-			.field('email', 'exemple@gmail.com')
+			.field('email', 'exemple2@gmail.com')
 			.field('password', '123456')
 			// Attache un fichier à la requête (exemple image)
-			.attach('image', path.resolve(__dirname, '../image/téléchargement.jpeg'));
+			.attach('image', path.resolve(__dirname, '../image/avatar.jpg'));
 
 		// Affichage de la réponse reçue dans la console
 		console.log('Réponse reçue', response.body);
@@ -50,7 +50,7 @@ describe('Register route testing', () => {
 		// Assertion vérifiant que la propriété message contient le message attendu
 		expect(response.body).toHaveProperty(
 			'message',
-			'Utilisateur créé avec succès. Vérifiez votre email pour activer votre compte'
+			'Utilisateur créé avec succès. Vérifiez votre email pour activer votre compte',
 		);
 	});
 });
