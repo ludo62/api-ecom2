@@ -1,7 +1,7 @@
 // Import du model auth
 const authModel = require('../models/auth.model');
 // Import de la validation des données
-const { validationResult } = require('express-validator');
+const { validationResult, check } = require('express-validator');
 // Import du modèle de hachage bcrypt
 const bcrypt = require('bcryptjs');
 // Import du module jwt pour les tokens
@@ -32,6 +32,17 @@ const generateVerificationTokenPassword = () => {
 // Fonction pour l'inscription
 module.exports.register = async (req, res) => {
 	try {
+		// Ces lignes vont vérifier que les champs ne soient pas vide au moment de l'execution de la requête
+		await check('lastname', 'Veuillez entrer votre nom').notEmpty().run(req);
+		await check('firstname', 'Veuillez entrer votre prénom').notEmpty().run(req);
+		await check('birthday', 'Veuillez entrer votre date de naissance').notEmpty().run(req);
+		await check('address', 'Veuillez entrer votre adresse').notEmpty().run(req);
+		await check('zipcode', 'Veuillez entrer votre code postal').notEmpty().run(req);
+		await check('city', 'Veuillez entrer votre ville').notEmpty().run(req);
+		await check('phone', 'Veuillez entrer votre numéro de téléphone').notEmpty().run(req);
+		await check('email', 'Veuillez entrer votre email').notEmpty().run(req);
+		await check('password', 'Veuillez entrer votre mot de passe').notEmpty().run(req);
+
 		const errors = validationResult(req);
 
 		if (!errors.isEmpty()) {
@@ -107,7 +118,16 @@ module.exports.register = async (req, res) => {
 // Fonction pour la vérification email
 module.exports.verifyEmail = async (req, res) => {
 	try {
-		// Récupération du tken pour le mettre en paramètre d'url
+		// Validation du paramètre token
+		await check('token', 'Token de vérification invalide').notEmpty().isString().run(req);
+
+		const errors = validationResult(req);
+
+		if (!errors.isEmpty()) {
+			return res.status(400).json({ errors: errors.array() });
+		}
+
+		// Récupération du token pour le mettre en paramètre d'url
 		const { token } = req.params;
 
 		// Trouver l'utilisateur avec le token associé
@@ -143,6 +163,14 @@ module.exports.verifyEmail = async (req, res) => {
 // fonction pour la demande de réinitialisation de mot de passe par email
 module.exports.forgotPassword = async (req, res) => {
 	try {
+		// Validation du paramètre token
+		await check('email', 'Veuillez entrer un email valide').isEmail().run(req);
+
+		const errors = validationResult(req);
+
+		if (!errors.isEmpty()) {
+			return res.status(400).json({ errors: errors.array() });
+		}
 		// Email que l'on va devoir entrer dans Postman pour recevoir l'e-mail
 		const { email } = req.body;
 
@@ -183,8 +211,21 @@ module.exports.updatePassword = async (req, res) => {
 	try {
 		// Récupération du token pour le mettre en params url
 		const { token } = req.params;
+
 		// Ajout de deux nouveaux champs dans la requête
 		const { newPassword, confirmNewPassword } = req.body;
+
+		// Validation du paramètre token
+		await check('newPassword', 'Le nouveau mot de passe est requis').notEmpty().run(req);
+		await check('confirmNewPassword', 'La confirmation du nouveau mot de passe est requise')
+			.notEmpty()
+			.run(req);
+
+		const errors = validationResult(req);
+
+		if (!errors.isEmpty()) {
+			return res.status(400).json({ errors: errors.array() });
+		}
 
 		// Vérifier si les champs de mot de passe correspondent
 		if (newPassword !== confirmNewPassword) {
@@ -221,6 +262,9 @@ module.exports.updatePassword = async (req, res) => {
 // Fonction pour la connexion
 module.exports.login = async (req, res) => {
 	try {
+		// Validation du paramètre token
+		await check('email', 'Veuillez entrer votre email').isEmail().run(req);
+		await check('password', 'Veuillez entrer votre mot de passe').notEmpty().run(req);
 		// Recuperation des erreurs de validations
 		const errors = validationResult(req);
 		// Verification si il y a des erreurs de validation
@@ -239,6 +283,19 @@ module.exports.login = async (req, res) => {
 			console.log('Utilisateur non trouvé');
 			return res.status(400).json({ message: 'Email invalide' });
 		}
+
+		// Vérification si le compte est verrouillé
+		if (user.failedLoginAttempts >= 3) {
+			// Vérification du temps écoulé depuis le dernier échec de connexion
+			const lockoutTime = 5 * 60 * 1000; // 5 minutes en millisecondes
+			const currentTime = new Date().getTime();
+
+			if (user.lastFailedLogin && currentTime - user.lastFailedLogin < lockoutTime) {
+				console.log('Compte verrouillé');
+				return res.status(400).json({ message: 'Compte verrouillé, Réessayez plus tard.' });
+			}
+		}
+
 		// Verification du mot de passe
 		const isPasswordValid = await bcrypt.compare(
 			// user.password = le mot de passe haché en base de données
@@ -250,8 +307,16 @@ module.exports.login = async (req, res) => {
 		// Si le mot de passe est incorrect, renvoie une erreur
 		if (!isPasswordValid) {
 			console.log('Mot de passe incorrect');
+			// Cette ligne fait en sorte de compter le nombre de tentative de connexion avec le mauvais mot de passe
+			user.failedLoginAttempts += 1;
+			await user.save();
 			return res.status(400).json({ message: 'Mot de passe incorrect' });
 		}
+
+		// Réinitialisation du nombre de tentatives en cas de connexion réussie
+		user.failedLoginAttempts = 0;
+		await user.save();
+
 		// Renvoie d'un message de succès
 		console.log('connexion réussie !');
 

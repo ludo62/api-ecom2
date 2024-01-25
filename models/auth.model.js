@@ -78,6 +78,10 @@ const authSchema = new mongoose.Schema({
 	resetPasswordTokenExpires: {
 		type: Date,
 	},
+	failedLoginAttempts: {
+		type: Number,
+		default: 0,
+	},
 	timestamp: {
 		type: Date,
 		default: Date.now,
