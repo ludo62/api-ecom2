@@ -205,7 +205,6 @@ module.exports.forgotPassword = async (req, res) => {
 		});
 	}
 };
-
 // Fonction pour réinitialiser le mot de passe
 module.exports.updatePassword = async (req, res) => {
 	try {
@@ -284,16 +283,10 @@ module.exports.login = async (req, res) => {
 			return res.status(400).json({ message: 'Email invalide' });
 		}
 
-		// Vérification si le compte est verrouillé
+		// Vérification si le compte est vérouillé
 		if (user.failedLoginAttempts >= 3) {
-			// Vérification du temps écoulé depuis le dernier échec de connexion
-			const lockoutTime = 5 * 60 * 1000; // 5 minutes en millisecondes
-			const currentTime = new Date().getTime();
-
-			if (user.lastFailedLogin && currentTime - user.lastFailedLogin < lockoutTime) {
-				console.log('Compte verrouillé');
-				return res.status(400).json({ message: 'Compte verrouillé, Réessayez plus tard.' });
-			}
+			console.log('Compte verouillé');
+			return res.status(400).json({ message: 'Compte verrouillé, Réessayer plus tard' });
 		}
 
 		// Verification du mot de passe
@@ -342,6 +335,18 @@ module.exports.login = async (req, res) => {
 // Fontion pour voir mon profil
 module.exports.getProfile = async (req, res) => {
 	try {
+		// Validation du paramètre id
+		await check('id', "Identifiant d'utilisateur invalide").notEmpty().isMongoId().run(req);
+
+		const errors = validationResult(req);
+
+		// Vérifier  si des erreurs de validations existent
+		if (!errors.isEmpty()) {
+			return res.status(400).json({
+				errors: errors.array(),
+			});
+		}
+
 		// Récuperer l'id de l'utilisateur
 		const userId = req.params.id;
 
@@ -362,6 +367,20 @@ module.exports.getProfile = async (req, res) => {
 // Fonction pour la modification du profil
 module.exports.update = async (req, res) => {
 	try {
+		// Validation des champs de la requête
+		await check('lastname', 'Veuillez entrer votre nom').notEmpty().run(req);
+		await check('firstname', 'Veuillez entrer votre prénom').notEmpty().run(req);
+		await check('birthday', 'Veuillez entrer votre date de naissance').notEmpty().run(req);
+		await check('address', 'Veuillez entrer votre adresse').notEmpty().run(req);
+		await check('zipcode', 'Veuillez entrer votre code postal').notEmpty().run(req);
+		await check('city', 'Veuillez entrer votre ville').notEmpty().run(req);
+		await check('phone', 'Veuillez entrer votre numéro de téléphone').notEmpty().run(req);
+		await check('email', 'Veuillez entrer votre email').optional().isEmail().run(req);
+		await check('newPassword', 'Veuillez entrer un nouveau mot de passe')
+			.optional()
+			.notEmpty()
+			.run(req);
+
 		// Déclaration de variables pour la gestion des erreurs de validations
 		const errors = validationResult(req);
 
